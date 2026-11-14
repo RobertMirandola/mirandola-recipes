@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useState } from "react";
+import { setFavoriteAction } from "@/app/actions";
 import { INGREDIENT_GROUPS, type Recipe } from "@/lib/recipe-model";
 import { formatAmount, renderStep } from "@/lib/scale";
 import { deleteRecipeAction } from "./actions";
@@ -10,8 +11,20 @@ type RecipeViewData = Omit<Recipe, "createdAt">;
 
 const MAX_MEALS = 99;
 
-export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
+export function RecipeView({
+  recipe,
+  favorite,
+}: {
+  recipe: RecipeViewData;
+  favorite: boolean;
+}) {
   const [editing, setEditing] = useState(false);
+  const [pinned, setPinned] = useState(favorite);
+  const [savedFavorite, setSavedFavorite] = useState(favorite);
+  if (favorite !== savedFavorite) {
+    setSavedFavorite(favorite);
+    setPinned(favorite);
+  }
   const [meals, setMeals] = useState(recipe.baseServings);
   const [savedBase, setSavedBase] = useState(recipe.baseServings);
   if (recipe.baseServings !== savedBase) {
@@ -44,13 +57,33 @@ export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
           {recipe.title}
         </h1>
         {recipe.note && <p className="mt-2 text-base leading-relaxed text-muted">{recipe.note}</p>}
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="mt-3 inline-flex min-h-11 items-center rounded px-3 text-sm text-muted hover:bg-hover"
-        >
-          Edit
-        </button>
+        <div className="mt-3 flex items-center gap-1">
+          <button
+            type="button"
+            aria-pressed={pinned}
+            onClick={() => {
+              const next = !pinned;
+              setPinned(next);
+              startTransition(async () => {
+                const result = await setFavoriteAction(recipe.id, next);
+                if (result.error) {
+                  setPinned(!next);
+                }
+              });
+            }}
+            className={`inline-flex min-h-11 items-center gap-2 rounded px-3 text-sm hover:bg-hover ${pinned ? "text-accent" : "text-muted"}`}
+          >
+            <StarIcon filled={pinned} />
+            {pinned ? "Pinned" : "Pin to top"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="inline-flex min-h-11 items-center rounded px-3 text-sm text-muted hover:bg-hover"
+          >
+            Edit
+          </button>
+        </div>
       </header>
 
       <div className="sticky top-0 z-10 -mx-2 border-b border-line bg-bg/95 py-2 backdrop-blur">
@@ -155,6 +188,19 @@ export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
 
       <DeleteRecipe id={recipe.id} />
     </article>
+  );
+}
+
+function StarIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 18 18" fill={filled ? "currentColor" : "none"}>
+      <path
+        d="M9 2.2 10.9 6.7l4.8.4-3.7 3.1 1.2 4.7L9 12.6 4.8 14.9 6 10.2 2.3 7.1l4.8-.4L9 2.2Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

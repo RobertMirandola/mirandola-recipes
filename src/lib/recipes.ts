@@ -14,11 +14,13 @@ import { normalizeRecipe, type RecipeInput } from "./recipe-schema";
 export type RecipeSummary = Pick<
   Recipe,
   "id" | "title" | "category" | "baseServings" | "createdAt"
->;
+> & { favorite: boolean; sortOrder: number };
+
+export type RecipeDetails = Recipe & { favorite: boolean };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** The owner's order, top to bottom. New recipes start at the top. */
+/** Pinned recipes first, then the owner's order. New recipes start at the top of the unpinned list. */
 export async function listRecipes(): Promise<RecipeSummary[]> {
   const db = await getDb();
   return db
@@ -28,12 +30,14 @@ export async function listRecipes(): Promise<RecipeSummary[]> {
       category: recipes.category,
       baseServings: recipes.baseServings,
       createdAt: recipes.createdAt,
+      sortOrder: recipes.sortOrder,
+      favorite: recipes.favorite,
     })
     .from(recipes)
-    .orderBy(asc(recipes.sortOrder), desc(recipes.createdAt));
+    .orderBy(desc(recipes.favorite), asc(recipes.sortOrder), desc(recipes.createdAt));
 }
 
-export async function getRecipe(id: string): Promise<Recipe | null> {
+export async function getRecipe(id: string): Promise<RecipeDetails | null> {
   if (!UUID_PATTERN.test(id)) {
     return null;
   }
@@ -52,11 +56,16 @@ const summaryColumns = {
   category: recipes.category,
   baseServings: recipes.baseServings,
   createdAt: recipes.createdAt,
+  sortOrder: recipes.sortOrder,
+  favorite: recipes.favorite,
 };
 
 async function loadRecipes(): Promise<Recipe[]> {
   const db = await getDb();
-  return db.select().from(recipes).orderBy(asc(recipes.sortOrder), desc(recipes.createdAt));
+  return db
+    .select()
+    .from(recipes)
+    .orderBy(desc(recipes.favorite), asc(recipes.sortOrder), desc(recipes.createdAt));
 }
 
 async function replaceRecipe(id: string, recipe: NewRecipe): Promise<RecipeSummary | null> {
@@ -113,36 +122,69 @@ export async function saveRecipe(input: RecipeInput): Promise<SaveRecipeResult> 
   return { ok: true, recipe: saved, updated: false };
 }
 
-/** Saves a top-to-bottom order. The ids must be every saved recipe, once each. */
+/** Saves the list order and which recipes are pinned. The ids must be every saved recipe, once each. */
 export async function reorderRecipes(
   orderedIds: string[],
+  favoriteIds: readonly string[] = [],
 ): Promise<{ ok: true } | { ok: false; problems: string[] }> {
-  if (orderedIds.some((id) => !UUID_PATTERN.test(id))) {
+  if (
+    orderedIds.some((id) => !UUID_PATTERN.test(id)) ||
+    favoriteIds.some((id) => !UUID_PATTERN.test(id))
+  ) {
     return { ok: false, problems: ["That list order could not be saved."] };
   }
   const existing = await listRecipes();
   const currentIds = existing.map((recipe) => recipe.id);
+  const known = new Set(currentIds);
   if (
     orderedIds.length !== currentIds.length ||
     new Set(orderedIds).size !== orderedIds.length ||
-    orderedIds.some((id) => !currentIds.includes(id))
+    orderedIds.some((id) => !known.has(id)) ||
+    favoriteIds.some((id) => !known.has(id))
   ) {
     return { ok: false, problems: ["The list changed. Refresh and try the move again."] };
   }
-  if (orderedIds.every((id, index) => id === currentIds[index])) {
+  const favorites = new Set(favoriteIds);
+  const currentFavorites = existing.filter((recipe) => recipe.favorite).map((recipe) => recipe.id);
+  const sameOrder = orderedIds.every((id, index) => id === currentIds[index]);
+  const sameFavorites =
+    currentFavorites.length === favorites.size && currentFavorites.every((id) => favorites.has(id));
+  if (sameOrder && sameFavorites) {
     return { ok: true };
   }
 
   const db = await getDb();
   await db.execute(sql`
     update ${recipes} as r
-    set sort_order = v.ord
+    set sort_order = v.ord, favorite = v.favorite
     from (values ${sql.join(
-      orderedIds.map((id, index) => sql`(${id}::uuid, ${index}::integer)`),
+      orderedIds.map(
+        (id, index) => sql`(${id}::uuid, ${index}::integer, ${favorites.has(id)}::boolean)`,
+      ),
       sql`, `,
-    )}) as v(id, ord)
+    )}) as v(id, ord, favorite)
     where r.id = v.id
   `);
+  return { ok: true };
+}
+
+/** Pins a recipe to the top group, or removes it from that group. */
+export async function setRecipeFavorite(
+  id: string,
+  favorite: boolean,
+): Promise<{ ok: true } | { ok: false; problems: string[] }> {
+  if (!UUID_PATTERN.test(id)) {
+    return { ok: false, problems: ["That recipe could not be found."] };
+  }
+  const db = await getDb();
+  const [saved] = await db
+    .update(recipes)
+    .set({ favorite })
+    .where(eq(recipes.id, id))
+    .returning({ id: recipes.id });
+  if (!saved) {
+    return { ok: false, problems: ["That recipe could not be found."] };
+  }
   return { ok: true };
 }
 

@@ -30,6 +30,7 @@ export default async function RecipePage({ params }: Props) {
         ← Recipes
       </Link>
       <RecipeView
+        favorite={recipe.favorite}
         recipe={{
           id: recipe.id,
           title: recipe.title,

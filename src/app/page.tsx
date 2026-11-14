@@ -63,8 +63,13 @@ export default async function HomePage({
             title: recipe.title,
             baseServings: recipe.baseServings,
             category: recipe.category,
+            favorite: recipe.favorite,
           }))}
-          fullIds={recipes.map((recipe) => recipe.id)}
+          catalog={recipes.map((recipe) => ({
+            id: recipe.id,
+            favorite: recipe.favorite,
+            sortOrder: recipe.sortOrder,
+          }))}
         />
       )}
     </main>

@@ -1,4 +1,4 @@
-import { integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import type { Ingredient } from "../lib/recipe-model";
 
 /**
@@ -14,6 +14,7 @@ export const recipes = pgTable("recipes", {
   ingredients: jsonb("ingredients").$type<Ingredient[]>().notNull(),
   steps: jsonb("steps").$type<string[]>().notNull(),
   sortOrder: integer("sort_order").notNull(),
+  favorite: boolean("favorite").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
