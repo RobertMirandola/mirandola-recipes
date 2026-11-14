@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { recipes } from "@/db/schema";
 import type { NewRecipe, Recipe } from "./recipe-model";
@@ -18,7 +18,7 @@ export type RecipeSummary = Pick<
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Newest first. */
+/** The owner's order, top to bottom. New recipes start at the top. */
 export async function listRecipes(): Promise<RecipeSummary[]> {
   const db = await getDb();
   return db
@@ -30,7 +30,7 @@ export async function listRecipes(): Promise<RecipeSummary[]> {
       createdAt: recipes.createdAt,
     })
     .from(recipes)
-    .orderBy(desc(recipes.createdAt));
+    .orderBy(asc(recipes.sortOrder), desc(recipes.createdAt));
 }
 
 export async function getRecipe(id: string): Promise<Recipe | null> {
@@ -56,7 +56,7 @@ const summaryColumns = {
 
 async function loadRecipes(): Promise<Recipe[]> {
   const db = await getDb();
-  return db.select().from(recipes).orderBy(desc(recipes.createdAt));
+  return db.select().from(recipes).orderBy(asc(recipes.sortOrder), desc(recipes.createdAt));
 }
 
 async function replaceRecipe(id: string, recipe: NewRecipe): Promise<RecipeSummary | null> {
@@ -105,8 +105,45 @@ export async function saveRecipe(input: RecipeInput): Promise<SaveRecipeResult> 
   }
 
   const db = await getDb();
-  const [saved] = await db.insert(recipes).values(normalized.recipe).returning(summaryColumns);
+  await db.update(recipes).set({ sortOrder: sql`${recipes.sortOrder} + 1` });
+  const [saved] = await db
+    .insert(recipes)
+    .values({ ...normalized.recipe, sortOrder: 0 })
+    .returning(summaryColumns);
   return { ok: true, recipe: saved, updated: false };
+}
+
+/** Saves a top-to-bottom order. The ids must be every saved recipe, once each. */
+export async function reorderRecipes(
+  orderedIds: string[],
+): Promise<{ ok: true } | { ok: false; problems: string[] }> {
+  if (orderedIds.some((id) => !UUID_PATTERN.test(id))) {
+    return { ok: false, problems: ["That list order could not be saved."] };
+  }
+  const existing = await listRecipes();
+  const currentIds = existing.map((recipe) => recipe.id);
+  if (
+    orderedIds.length !== currentIds.length ||
+    new Set(orderedIds).size !== orderedIds.length ||
+    orderedIds.some((id) => !currentIds.includes(id))
+  ) {
+    return { ok: false, problems: ["The list changed. Refresh and try the move again."] };
+  }
+  if (orderedIds.every((id, index) => id === currentIds[index])) {
+    return { ok: true };
+  }
+
+  const db = await getDb();
+  await db.execute(sql`
+    update ${recipes} as r
+    set sort_order = v.ord
+    from (values ${sql.join(
+      orderedIds.map((id, index) => sql`(${id}::uuid, ${index}::integer)`),
+      sql`, `,
+    )}) as v(id, ord)
+    where r.id = v.id
+  `);
+  return { ok: true };
 }
 
 /** Replaces one recipe, found by its id. Used by the edit form. */

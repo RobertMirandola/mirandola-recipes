@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { listRecipes } from "@/lib/recipes";
 import { requireSession } from "@/lib/session";
-
-function mealsLabel(count: number): string {
-  return count === 1 ? "1 meal" : `${count} meals`;
-}
+import { RecipeList } from "./recipe-list";
 
 export default async function HomePage({
   searchParams,
@@ -60,26 +57,15 @@ export default async function HomePage({
       ) : shown.length === 0 ? (
         <p className="text-base text-muted">No recipes in this category.</p>
       ) : (
-        <ul className="-mx-3 divide-y divide-line">
-          {shown.map((recipe) => (
-            <li key={recipe.id}>
-              <Link
-                href={`/recipes/${recipe.id}`}
-                className="flex min-h-16 flex-col justify-center gap-1 rounded-md px-3 py-3 active:bg-hover hover:bg-hover"
-              >
-                <span className="text-base leading-snug">{recipe.title}</span>
-                <span className="flex items-center gap-2 text-sm text-muted">
-                  <span>{mealsLabel(recipe.baseServings)}</span>
-                  {recipe.category && (
-                    <span className="rounded bg-line px-1.5 py-0.5 text-xs capitalize">
-                      {recipe.category}
-                    </span>
-                  )}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <RecipeList
+          recipes={shown.map((recipe) => ({
+            id: recipe.id,
+            title: recipe.title,
+            baseServings: recipe.baseServings,
+            category: recipe.category,
+          }))}
+          fullIds={recipes.map((recipe) => recipe.id)}
+        />
       )}
     </main>
   );

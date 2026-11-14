@@ -13,6 +13,7 @@ export const recipes = pgTable("recipes", {
   category: text("category"),
   ingredients: jsonb("ingredients").$type<Ingredient[]>().notNull(),
   steps: jsonb("steps").$type<string[]>().notNull(),
+  sortOrder: integer("sort_order").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

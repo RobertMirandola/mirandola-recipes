@@ -42,7 +42,6 @@ const updateRecipeSchema = z.object({
       "Title to find, such as 'pesto chicken orzo'. Case and extra spaces do not matter. A unique part of the title is enough.",
     ),
   id: z
-    .string()
     .uuid()
     .optional()
     .describe("Recipe id, when you already have it from list_recipes or get_recipe."),
@@ -90,7 +89,7 @@ const recipeLookupSchema = z.object({
     .max(140)
     .optional()
     .describe("Title to find, such as 'pesto chicken orzo'."),
-  id: z.string().uuid().optional().describe("Recipe id from list_recipes."),
+  id: z.uuid().optional().describe("Recipe id from list_recipes."),
 });
 
 const recipeListSchema = z.object({
@@ -267,7 +266,7 @@ export function createRecipesServer(ctx: McpRequestContext): McpServer {
     {
       title: "List recipes",
       description:
-        "List saved recipes, newest first. Call this before saving so you can see whether a title is already stored.",
+        "List saved recipes in the order shown in the app. Call this before saving so you can see whether a title is already stored.",
       outputSchema: recipeListSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
       _meta: OAUTH_META,

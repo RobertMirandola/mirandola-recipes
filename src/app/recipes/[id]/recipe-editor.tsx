@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useState, type SubmitEvent } from "react";
 import { INGREDIENT_GROUPS, type IngredientGroup, type Recipe } from "@/lib/recipe-model";
 import { updateRecipeAction, type UpdateRecipeState } from "./actions";
 
@@ -44,7 +44,7 @@ export function RecipeEditor({
   const [localError, setLocalError] = useState<string | null>(null);
   const error = localError ?? state.error;
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const built = buildRecipe(title, baseServings, note, category, ingredients, steps);
     if (typeof built === "string") {
