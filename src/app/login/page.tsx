@@ -17,9 +17,12 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-5 py-10">
-      <h1 className="font-serif text-4xl font-semibold tracking-tight">Mirandola Recipes</h1>
-      <p className="mt-2 mb-8 text-muted">Enter the password to open your recipes.</p>
+    <main className="mx-auto flex min-h-dvh max-w-[420px] flex-col justify-center px-6 py-16">
+      <div aria-hidden="true" className="mb-2 text-6xl leading-none">
+        🍲
+      </div>
+      <h1 className="text-[32px] leading-tight font-bold tracking-tight">Mirandola Recipes</h1>
+      <p className="mt-1 mb-6 text-sm text-muted">Enter the password to open your recipes.</p>
       <LoginForm next={next} />
     </main>
   );

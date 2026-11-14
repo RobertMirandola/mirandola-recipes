@@ -25,9 +25,9 @@ export default async function RecipePage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-5 pt-6 pb-16">
-      <Link href="/" className="inline-block py-2 font-medium text-accent">
-        ‹ All recipes
+    <main className="mx-auto min-h-dvh max-w-180 px-6 pt-8 pb-24 sm:px-12">
+      <Link href="/" className="-mx-1 inline-block rounded px-1 py-0.5 text-sm text-muted hover:bg-hover">
+        ← Recipes
       </Link>
       <RecipeView
         recipe={{

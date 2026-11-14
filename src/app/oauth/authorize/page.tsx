@@ -35,15 +35,15 @@ export default async function AuthorizePage({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-5 py-10">
-      <h1 className="font-serif text-4xl font-semibold tracking-tight">Connect ChatGPT</h1>
+    <main className="mx-auto flex min-h-dvh max-w-[420px] flex-col justify-center px-6 py-16">
+      <h1 className="text-[32px] leading-tight font-bold tracking-tight">Connect ChatGPT</h1>
       {check.kind === "reject" ? (
-        <p className="mt-4 text-muted" role="alert">
+        <p className="mt-3 text-sm text-muted" role="alert">
           {check.message}
         </p>
       ) : (
         <>
-          <p className="mt-2 mb-8 text-muted">
+          <p className="mt-1 mb-6 text-sm text-muted">
             ChatGPT is asking to read your recipes and save new ones.
             {!(await hasSession()) && " Enter the app password to allow it."}
           </p>

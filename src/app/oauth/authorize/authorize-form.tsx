@@ -17,13 +17,13 @@ export function AuthorizeForm({
   const [decision, setDecision] = useState<"allow" | "deny" | null>(null);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-3">
       {AUTHORIZE_PARAM_NAMES.map((name) =>
         params[name] ? <input key={name} type="hidden" name={name} value={params[name]} /> : null,
       )}
       {!signedIn && (
-        <div className="space-y-2">
-          <label htmlFor="password" className="block font-medium">
+        <div className="space-y-1">
+          <label htmlFor="password" className="block text-sm text-muted">
             Password
           </label>
           <input
@@ -35,23 +35,23 @@ export function AuthorizeForm({
             autoFocus
             aria-describedby={state.error ? "authorize-error" : undefined}
             aria-invalid={state.error ? true : undefined}
-            className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-lg"
+            className="w-full rounded border border-line bg-bg px-2 py-1.5 text-sm outline-none focus:border-accent"
           />
         </div>
       )}
       {state.error && (
-        <p id="authorize-error" role="alert" className="text-accent">
+        <p id="authorize-error" role="alert" className="text-sm text-danger">
           {state.error}
         </p>
       )}
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <button
           type="submit"
           name="decision"
           value="deny"
           disabled={pending}
           onClick={() => setDecision("deny")}
-          className="flex-1 rounded-xl border border-line bg-surface px-4 py-3 text-lg font-semibold disabled:opacity-60"
+          className="rounded px-3 py-1.5 text-sm hover:bg-hover disabled:opacity-60"
         >
           {pending && decision === "deny" ? "Cancelling…" : "Cancel"}
         </button>
@@ -61,7 +61,7 @@ export function AuthorizeForm({
           value="allow"
           disabled={pending}
           onClick={() => setDecision("allow")}
-          className="flex-1 rounded-xl bg-accent px-4 py-3 text-lg font-semibold text-accent-ink disabled:opacity-60"
+          className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-accent-ink hover:opacity-90 disabled:opacity-60"
         >
           {pending && decision === "allow" ? "Connecting…" : "Allow"}
         </button>

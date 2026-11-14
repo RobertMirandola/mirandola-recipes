@@ -25,18 +25,21 @@ export default async function HomePage({
     : recipes;
 
   return (
-    <main className="mx-auto max-w-2xl px-5 pt-10 pb-16">
-      <header className="mb-6">
-        <h1 className="font-serif text-4xl font-semibold tracking-tight">Mirandola Recipes</h1>
+    <main className="mx-auto min-h-dvh max-w-[720px] px-6 pt-16 pb-24 sm:px-12">
+      <header className="mb-8">
+        <div aria-hidden="true" className="mb-2 text-7xl leading-none">
+          🍲
+        </div>
+        <h1 className="text-[40px] leading-[1.2] font-bold tracking-tight">Mirandola Recipes</h1>
         {recipes.length > 0 && (
-          <p className="mt-1 text-muted">
+          <p className="mt-1 text-sm text-muted">
             {recipes.length === 1 ? "1 recipe" : `${recipes.length} recipes`}
           </p>
         )}
       </header>
 
       {categories.length > 0 && (
-        <nav aria-label="Filter by category" className="mb-5 flex flex-wrap gap-2">
+        <nav aria-label="Filter by category" className="mb-3 flex flex-wrap gap-1">
           <CategoryChip href="/" label="All" active={activeCategory === null} />
           {categories.map((category) => (
             <CategoryChip
@@ -50,35 +53,28 @@ export default async function HomePage({
       )}
 
       {recipes.length === 0 ? (
-        <div className="rounded-2xl border border-line bg-surface px-6 py-10 text-center">
-          <h2 className="font-serif text-2xl font-semibold">No recipes yet</h2>
-          <p className="mx-auto mt-3 max-w-sm text-lg text-muted">
-            Finish a recipe in ChatGPT, then tell it to save the recipe to mirandola-recipes.
-            It will show up here.
-          </p>
-        </div>
+        <p className="max-w-md text-base leading-relaxed text-muted">
+          No recipes yet. Finish a recipe in ChatGPT, then tell it to save the recipe to
+          mirandola-recipes. It will show up here.
+        </p>
+      ) : shown.length === 0 ? (
+        <p className="text-base text-muted">No recipes in this category.</p>
       ) : (
-        <ul className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <ul className="-mx-3 divide-y divide-line">
           {shown.map((recipe) => (
-            <li key={recipe.id} className="border-b border-line last:border-b-0">
+            <li key={recipe.id}>
               <Link
                 href={`/recipes/${recipe.id}`}
-                className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-accent-soft"
+                className="flex min-h-16 flex-col justify-center gap-1 rounded-md px-3 py-3 active:bg-hover hover:bg-hover"
               >
-                <span>
-                  <span className="block font-serif text-xl font-semibold">{recipe.title}</span>
-                  <span className="mt-0.5 block text-muted">
-                    {mealsLabel(recipe.baseServings)}
-                    {recipe.category && (
-                      <>
-                        {" · "}
-                        <span className="capitalize">{recipe.category}</span>
-                      </>
-                    )}
-                  </span>
-                </span>
-                <span aria-hidden="true" className="text-2xl text-muted">
-                  ›
+                <span className="text-base leading-snug">{recipe.title}</span>
+                <span className="flex items-center gap-2 text-sm text-muted">
+                  <span>{mealsLabel(recipe.baseServings)}</span>
+                  {recipe.category && (
+                    <span className="rounded bg-line px-1.5 py-0.5 text-xs capitalize">
+                      {recipe.category}
+                    </span>
+                  )}
                 </span>
               </Link>
             </li>
@@ -94,10 +90,8 @@ function CategoryChip({ href, label, active }: { href: string; label: string; ac
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`rounded-full border px-4 py-2 font-medium capitalize ${
-        active
-          ? "border-accent bg-accent text-accent-ink"
-          : "border-line bg-surface hover:bg-accent-soft"
+      className={`inline-flex min-h-11 items-center rounded px-3 text-sm capitalize ${
+        active ? "bg-hover font-medium text-ink" : "text-muted hover:bg-hover"
       }`}
     >
       {label}

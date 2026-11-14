@@ -14,15 +14,15 @@ export default async function TestCallbackPage({
   );
 
   return (
-    <main className="mx-auto max-w-xl px-5 py-10">
-      <h1 className="font-serif text-3xl font-semibold tracking-tight">OAuth test callback</h1>
-      <p className="mt-2 mb-6 text-muted">
+    <main className="mx-auto max-w-[720px] px-6 py-16 sm:px-12">
+      <h1 className="text-[32px] leading-tight font-bold tracking-tight">OAuth test callback</h1>
+      <p className="mt-1 mb-6 text-sm text-muted">
         Local testing only. The authorization server sent the browser here.
       </p>
       <dl className="space-y-3 break-all">
         {Object.entries(shown).map(([key, value]) => (
           <div key={key}>
-            <dt className="text-sm font-medium text-muted">{key}</dt>
+            <dt className="text-xs text-muted">{key}</dt>
             <dd>{value}</dd>
           </div>
         ))}

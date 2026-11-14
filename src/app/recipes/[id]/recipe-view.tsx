@@ -21,43 +21,26 @@ export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
 
   return (
     <article>
-      <header className="mt-2 mb-5">
+      <header className="mt-6 mb-2">
         {recipe.category && (
-          <p className="text-sm font-semibold tracking-widest text-accent uppercase">
-            {recipe.category}
+          <p className="mb-2">
+            <span className="rounded bg-accent-soft px-1.5 py-0.5 text-sm text-ink capitalize">
+              {recipe.category}
+            </span>
           </p>
         )}
-        <h1 className="font-serif text-4xl font-semibold tracking-tight text-balance">
+        <h1 className="text-[40px] leading-[1.2] font-bold tracking-tight text-balance">
           {recipe.title}
         </h1>
-        {recipe.note && <p className="mt-3 text-lg text-muted">{recipe.note}</p>}
+        {recipe.note && <p className="mt-2 text-base leading-relaxed text-muted">{recipe.note}</p>}
       </header>
 
-      <div className="sticky top-0 z-10 -mx-5 border-y border-line bg-bg/90 px-5 py-3 backdrop-blur">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p id="meals-label" className="text-lg font-semibold">
-              Meals
-            </p>
-            <p className="text-muted">
-              {scaled ? (
-                <>
-                  Scaled from {recipe.baseServings}
-                  {" · "}
-                  <button
-                    type="button"
-                    onClick={() => setMeals(recipe.baseServings)}
-                    className="font-medium text-accent underline underline-offset-2"
-                  >
-                    Reset
-                  </button>
-                </>
-              ) : (
-                `Recipe makes ${recipe.baseServings}`
-              )}
-            </p>
-          </div>
-          <div role="group" aria-labelledby="meals-label" className="flex items-center gap-2">
+      <div className="sticky top-0 z-10 -mx-2 border-b border-line bg-bg/95 py-2 backdrop-blur">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md px-2 py-1">
+          <p id="meals-label" className="w-24 shrink-0 text-sm text-muted">
+            Meals
+          </p>
+          <div role="group" aria-labelledby="meals-label" className="flex items-center">
             <StepperButton
               label="Fewer meals"
               disabled={meals <= 1}
@@ -65,10 +48,7 @@ export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
             >
               −
             </StepperButton>
-            <output
-              aria-live="polite"
-              className="w-12 text-center font-serif text-3xl font-semibold tabular-nums"
-            >
+            <output aria-live="polite" className="w-8 text-center text-base tabular-nums">
               {meals}
             </output>
             <StepperButton
@@ -79,25 +59,43 @@ export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
               +
             </StepperButton>
           </div>
+          <p className="min-w-0 text-sm text-muted">
+            {scaled ? (
+              <>
+                Scaled from {recipe.baseServings}
+                {" · "}
+                <button
+                  type="button"
+                  onClick={() => setMeals(recipe.baseServings)}
+                  className="text-accent hover:underline"
+                >
+                  Reset
+                </button>
+              </>
+            ) : (
+              `Recipe makes ${recipe.baseServings}`
+            )}
+          </p>
         </div>
       </div>
 
       <section aria-labelledby="ingredients-heading" className="mt-8">
-        <h2 id="ingredients-heading" className="font-serif text-2xl font-semibold">
+        <h2 id="ingredients-heading" className="text-2xl font-semibold tracking-tight">
           Ingredients
         </h2>
         {groups.map(({ group, items }) => (
-          <div key={group} className="mt-5">
-            <h3 className="text-sm font-semibold tracking-widest text-accent uppercase">
-              {group}
-            </h3>
-            <ul className="mt-1 divide-y divide-line">
+          <div key={group} className="mt-4">
+            <h3 className="text-sm text-muted">{group}</h3>
+            <ul className="mt-1">
               {items.map((ingredient) => {
                 const amount = formatAmount(ingredient, factor);
                 return (
-                  <li key={ingredient.id} className="flex gap-4 py-2.5 text-lg">
-                    <span className="w-28 shrink-0 font-semibold tabular-nums">
-                      {amount ?? <span className="font-normal text-muted">to taste</span>}
+                  <li
+                    key={ingredient.id}
+                    className="flex gap-3 border-b border-line py-1.5 text-base last:border-b-0"
+                  >
+                    <span className="w-24 shrink-0 text-muted tabular-nums">
+                      {amount ?? "to taste"}
                     </span>
                     <span>{ingredient.name}</span>
                   </li>
@@ -109,22 +107,22 @@ export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
       </section>
 
       <section aria-labelledby="steps-heading" className="mt-10">
-        <h2 id="steps-heading" className="font-serif text-2xl font-semibold">
+        <h2 id="steps-heading" className="text-2xl font-semibold tracking-tight">
           Steps
         </h2>
-        <ol className="mt-4 space-y-5">
+        <ol className="mt-3">
           {recipe.steps.map((step, index) => (
-            <li key={index} className="flex gap-4">
-              <span
-                aria-hidden="true"
-                className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-accent-soft font-semibold text-accent"
-              >
-                {index + 1}
+            <li key={index} className="flex gap-2 py-1 text-base leading-7">
+              <span aria-hidden="true" className="w-6 shrink-0 text-right text-muted tabular-nums">
+                {index + 1}.
               </span>
-              <p className="text-lg leading-relaxed">
+              <p>
                 {renderStep(step, recipe.ingredients, factor).map((part, partIndex) =>
                   part.kind === "amount" ? (
-                    <strong key={partIndex} className="font-semibold whitespace-nowrap">
+                    <strong
+                      key={partIndex}
+                      className="rounded bg-hover px-1 font-semibold whitespace-nowrap"
+                    >
                       {part.text}
                     </strong>
                   ) : (
@@ -159,7 +157,7 @@ function StepperButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex size-12 items-center justify-center rounded-full border border-line bg-surface text-2xl font-semibold hover:bg-accent-soft disabled:opacity-40 disabled:hover:bg-surface"
+      className="flex size-8 items-center justify-center rounded text-base text-muted hover:bg-hover disabled:opacity-30 disabled:hover:bg-transparent"
     >
       {children}
     </button>
@@ -170,20 +168,20 @@ function DeleteRecipe({ id }: { id: string }) {
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <footer className="mt-14 border-t border-line pt-6">
+    <footer className="mt-16">
       {confirming ? (
-        <form action={deleteRecipeAction.bind(null, id)} className="flex flex-wrap items-center gap-3">
-          <p className="mr-auto font-medium">Delete this recipe for good?</p>
+        <form action={deleteRecipeAction.bind(null, id)} className="flex flex-wrap items-center gap-2">
+          <p className="mr-auto text-sm">Delete this recipe for good?</p>
           <button
             type="button"
             onClick={() => setConfirming(false)}
-            className="rounded-xl border border-line bg-surface px-4 py-2.5 font-medium"
+            className="rounded px-2 py-1 text-sm hover:bg-hover"
           >
             Keep it
           </button>
           <button
             type="submit"
-            className="rounded-xl bg-accent px-4 py-2.5 font-semibold text-accent-ink"
+            className="rounded bg-danger px-2 py-1 text-sm font-medium text-danger-ink"
           >
             Delete
           </button>
@@ -192,7 +190,7 @@ function DeleteRecipe({ id }: { id: string }) {
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="py-2 font-medium text-muted underline underline-offset-2"
+          className="rounded px-1 py-1 text-sm text-muted hover:bg-danger/10 hover:text-danger"
         >
           Delete recipe
         </button>

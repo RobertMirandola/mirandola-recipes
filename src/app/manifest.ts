@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "My recipes, with ingredients that scale to the number of meals.",
     start_url: "/",
     display: "standalone",
-    background_color: "#faf6ef",
-    theme_color: "#faf6ef",
+    background_color: "#ffffff",
+    theme_color: "#ffffff",
     icons: [
       { src: "/icons/192", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icons/512", sizes: "512x512", type: "image/png", purpose: "any" },

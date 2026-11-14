@@ -2,26 +2,34 @@
 
 :root {
   color-scheme: light dark;
-  --bg: #faf6ef;
-  --surface: #fffdf8;
-  --ink: #2a2420;
-  --muted: #6f6359;
-  --line: #e6dccd;
-  --accent: #a8481f;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --ink: #37352f;
+  --muted: #787774;
+  --line: #e9e9e7;
+  --hover: #f1f1ef;
+  --accent: #2383e2;
   --accent-ink: #ffffff;
-  --accent-soft: #f5e4d8;
+  --accent-soft: #e8f3fc;
+  --danger: #eb5757;
+  --danger-ink: #ffffff;
+  --selection: #c5dff8;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1a1714;
-    --surface: #24201c;
-    --ink: #f1ebe3;
-    --muted: #aa9f94;
-    --line: #3a332d;
-    --accent: #e8946a;
-    --accent-ink: #1a1714;
-    --accent-soft: #3b2a20;
+    --bg: #191919;
+    --surface: #202020;
+    --ink: #d4d4d4;
+    --muted: #9b9b9b;
+    --line: #2f2f2f;
+    --hover: #2c2c2c;
+    --accent: #529cca;
+    --accent-ink: #191919;
+    --accent-soft: #1a2c38;
+    --danger: #ff7369;
+    --danger-ink: #191919;
+    --selection: #234866;
   }
 }
 
@@ -31,16 +39,23 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-hover: var(--hover);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-serif: ui-serif, "New York", Georgia, "Times New Roman", serif;
+  --color-danger: var(--danger);
+  --color-danger-ink: var(--danger-ink);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--selection);
 }
 
 :focus-visible {

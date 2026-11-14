@@ -9,10 +9,10 @@ export function LoginForm({ next }: { next: string }) {
   const [state, formAction, pending] = useActionState(login, initialState);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-3">
       <input type="hidden" name="next" value={next} />
-      <div className="space-y-2">
-        <label htmlFor="password" className="block font-medium">
+      <div className="space-y-1">
+        <label htmlFor="password" className="block text-sm text-muted">
           Password
         </label>
         <input
@@ -24,10 +24,10 @@ export function LoginForm({ next }: { next: string }) {
           autoFocus
           aria-describedby={state.error ? "password-error" : undefined}
           aria-invalid={state.error ? true : undefined}
-          className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-lg"
+          className="w-full rounded border border-line bg-bg px-2 py-1.5 text-sm outline-none focus:border-accent"
         />
         {state.error && (
-          <p id="password-error" role="alert" className="text-accent">
+          <p id="password-error" role="alert" className="text-sm text-danger">
             {state.error}
           </p>
         )}
@@ -35,7 +35,7 @@ export function LoginForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-accent px-4 py-3 text-lg font-semibold text-accent-ink disabled:opacity-60"
+        className="rounded bg-accent px-3 py-1.5 text-sm font-medium text-accent-ink hover:opacity-90 disabled:opacity-60"
       >
         {pending ? "Signing in…" : "Sign in"}
       </button>
