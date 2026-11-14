@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { publicOrigin } from "@/lib/oauth";
 import { recipeInputSchema } from "@/lib/recipe-schema";
 import { saveRecipe } from "@/lib/recipes";
@@ -46,8 +47,10 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const { id, title } = result.recipe;
+  revalidatePath("/");
+  revalidatePath(`/recipes/${id}`);
   return Response.json(
-    { id, title, url: `${publicOrigin(request.headers)}/recipes/${id}` },
-    { status: 201 },
+    { id, title, url: `${publicOrigin(request.headers)}/recipes/${id}`, updated: result.updated },
+    { status: result.updated ? 200 : 201 },
   );
 }

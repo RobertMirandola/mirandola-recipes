@@ -4,15 +4,26 @@ import { useState } from "react";
 import { INGREDIENT_GROUPS, type Recipe } from "@/lib/recipe-model";
 import { formatAmount, renderStep } from "@/lib/scale";
 import { deleteRecipeAction } from "./actions";
+import { RecipeEditor } from "./recipe-editor";
 
 type RecipeViewData = Omit<Recipe, "createdAt">;
 
 const MAX_MEALS = 99;
 
 export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
+  const [editing, setEditing] = useState(false);
   const [meals, setMeals] = useState(recipe.baseServings);
+  const [savedBase, setSavedBase] = useState(recipe.baseServings);
+  if (recipe.baseServings !== savedBase) {
+    setSavedBase(recipe.baseServings);
+    setMeals(recipe.baseServings);
+  }
   const factor = meals / recipe.baseServings;
   const scaled = meals !== recipe.baseServings;
+
+  if (editing) {
+    return <RecipeEditor recipe={recipe} onCancel={() => setEditing(false)} />;
+  }
 
   const groups = INGREDIENT_GROUPS.map((group) => ({
     group,
@@ -33,6 +44,13 @@ export function RecipeView({ recipe }: { recipe: RecipeViewData }) {
           {recipe.title}
         </h1>
         {recipe.note && <p className="mt-2 text-base leading-relaxed text-muted">{recipe.note}</p>}
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="mt-3 inline-flex min-h-11 items-center rounded px-3 text-sm text-muted hover:bg-hover"
+        >
+          Edit
+        </button>
       </header>
 
       <div className="sticky top-0 z-10 -mx-2 border-b border-line bg-bg/95 py-2 backdrop-blur">
