@@ -9,12 +9,13 @@ import {
   titleKey,
   type RecipePatch,
 } from "./recipe-match";
+import { recipeSearchText } from "./recipe-search";
 import { normalizeRecipe, type RecipeInput } from "./recipe-schema";
 
 export type RecipeSummary = Pick<
   Recipe,
   "id" | "title" | "category" | "baseServings" | "createdAt"
-> & { favorite: boolean; sortOrder: number };
+> & { favorite: boolean; sortOrder: number; searchText: string };
 
 export type RecipeDetails = Recipe & { favorite: boolean };
 
@@ -23,7 +24,7 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 /** Pinned recipes first, then the owner's order. New recipes start at the top of the unpinned list. */
 export async function listRecipes(): Promise<RecipeSummary[]> {
   const db = await getDb();
-  return db
+  const rows = await db
     .select({
       id: recipes.id,
       title: recipes.title,
@@ -32,9 +33,16 @@ export async function listRecipes(): Promise<RecipeSummary[]> {
       createdAt: recipes.createdAt,
       sortOrder: recipes.sortOrder,
       favorite: recipes.favorite,
+      note: recipes.note,
+      ingredients: recipes.ingredients,
+      steps: recipes.steps,
     })
     .from(recipes)
     .orderBy(desc(recipes.favorite), asc(recipes.sortOrder), desc(recipes.createdAt));
+  return rows.map(({ note, ingredients, steps, ...recipe }) => ({
+    ...recipe,
+    searchText: recipeSearchText({ ...recipe, note, ingredients, steps }),
+  }));
 }
 
 export async function getRecipe(id: string): Promise<RecipeDetails | null> {
@@ -68,6 +76,10 @@ async function loadRecipes(): Promise<Recipe[]> {
     .orderBy(desc(recipes.favorite), asc(recipes.sortOrder), desc(recipes.createdAt));
 }
 
+function asSummary(row: Omit<RecipeSummary, "searchText">, content: NewRecipe): RecipeSummary {
+  return { ...row, searchText: recipeSearchText(content) };
+}
+
 async function replaceRecipe(id: string, recipe: NewRecipe): Promise<RecipeSummary | null> {
   const db = await getDb();
   const [saved] = await db
@@ -75,7 +87,7 @@ async function replaceRecipe(id: string, recipe: NewRecipe): Promise<RecipeSumma
     .set(recipe)
     .where(eq(recipes.id, id))
     .returning(summaryColumns);
-  return saved ?? null;
+  return saved ? asSummary(saved, recipe) : null;
 }
 
 function titleTaken(existing: Recipe[], title: string, exceptId?: string): string | null {
@@ -119,7 +131,7 @@ export async function saveRecipe(input: RecipeInput): Promise<SaveRecipeResult> 
     .insert(recipes)
     .values({ ...normalized.recipe, sortOrder: 0 })
     .returning(summaryColumns);
-  return { ok: true, recipe: saved, updated: false };
+  return { ok: true, recipe: asSummary(saved, normalized.recipe), updated: false };
 }
 
 /** Saves the list order and which recipes are pinned. The ids must be every saved recipe, once each. */
