@@ -17,7 +17,19 @@ type DraftIngredient = {
 const fieldClass =
   "w-full rounded border border-line bg-bg px-2 py-1.5 text-base outline-none focus:border-accent";
 
+const MAX_MEALS = 100;
 const initialState: UpdateRecipeState = { error: null };
+
+function parseMeals(value: string): number | null {
+  if (!/^[1-9]\d*$/.test(value)) {
+    return null;
+  }
+  const meals = Number(value);
+  if (meals < 1 || meals > MAX_MEALS) {
+    return null;
+  }
+  return meals;
+}
 
 export function RecipeEditor({
   recipe,
@@ -28,7 +40,8 @@ export function RecipeEditor({
 }) {
   const [state, formAction, pending] = useActionState(updateRecipeAction, initialState);
   const [title, setTitle] = useState(recipe.title);
-  const [baseServings, setBaseServings] = useState(String(recipe.baseServings));
+  const [baseServings, setBaseServings] = useState(recipe.baseServings);
+  const [mealsText, setMealsText] = useState(String(recipe.baseServings));
   const [note, setNote] = useState(recipe.note ?? "");
   const [category, setCategory] = useState(recipe.category ?? "");
   const [ingredients, setIngredients] = useState<DraftIngredient[]>(() =>
@@ -44,9 +57,22 @@ export function RecipeEditor({
   const [localError, setLocalError] = useState<string | null>(null);
   const error = localError ?? state.error;
 
+  function setMealCount(meals: number) {
+    const next = Math.min(MAX_MEALS, Math.max(1, meals));
+    setBaseServings(next);
+    setMealsText(String(next));
+  }
+
   function onSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    const built = buildRecipe(title, baseServings, note, category, ingredients, steps);
+    const meals = parseMeals(mealsText);
+    if (meals === null) {
+      setMealsText(String(baseServings));
+      setLocalError("Meals must be a whole number from 1 to 100.");
+      return;
+    }
+    setBaseServings(meals);
+    const built = buildRecipe(title, meals, note, category, ingredients, steps);
     if (typeof built === "string") {
       setLocalError(built);
       return;
@@ -72,15 +98,56 @@ export function RecipeEditor({
             className={fieldClass}
           />
         </Field>
-        <Field label="Meals this recipe makes">
-          <input
-            value={baseServings}
-            onChange={(event) => setBaseServings(event.target.value)}
-            inputMode="numeric"
-            required
-            className={`${fieldClass} max-w-28`}
-          />
-        </Field>
+        <div className="space-y-1">
+          <span id="base-meals-label" className="text-sm text-muted">
+            Meals this recipe makes
+          </span>
+          <div role="group" aria-labelledby="base-meals-label" className="flex items-center">
+            <MealStepButton
+              label="Fewer meals"
+              disabled={(parseMeals(mealsText) ?? baseServings) <= 1}
+              onClick={() => setMealCount((parseMeals(mealsText) ?? baseServings) - 1)}
+            >
+              −
+            </MealStepButton>
+            <input
+              value={mealsText}
+              onChange={(event) => {
+                const next = event.target.value;
+                if (next === "") {
+                  setMealsText("");
+                  return;
+                }
+                const meals = parseMeals(next);
+                if (meals === null) {
+                  return;
+                }
+                setMealsText(String(meals));
+                setBaseServings(meals);
+              }}
+              onBlur={() => {
+                const meals = parseMeals(mealsText);
+                if (meals === null) {
+                  setMealsText(String(baseServings));
+                  return;
+                }
+                setBaseServings(meals);
+                setMealsText(String(meals));
+              }}
+              inputMode="numeric"
+              autoComplete="off"
+              aria-label="Meals this recipe makes"
+              className="w-14 bg-transparent text-center text-base tabular-nums outline-none"
+            />
+            <MealStepButton
+              label="More meals"
+              disabled={(parseMeals(mealsText) ?? baseServings) >= MAX_MEALS}
+              onClick={() => setMealCount((parseMeals(mealsText) ?? baseServings) + 1)}
+            >
+              +
+            </MealStepButton>
+          </div>
+        </div>
         <Field label="Category">
           <input
             value={category}
@@ -298,9 +365,33 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function MealStepButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="flex size-11 items-center justify-center rounded text-lg text-muted hover:bg-hover disabled:opacity-30 disabled:hover:bg-transparent"
+    >
+      {children}
+    </button>
+  );
+}
+
 function buildRecipe(
   title: string,
-  baseServings: string,
+  baseServings: number,
   note: string,
   category: string,
   ingredients: DraftIngredient[],
@@ -325,8 +416,7 @@ function buildRecipe(
   if (!trimmedTitle) {
     return "Add a title.";
   }
-  const meals = Number(baseServings);
-  if (!Number.isInteger(meals) || meals < 1 || meals > 100) {
+  if (!Number.isInteger(baseServings) || baseServings < 1 || baseServings > MAX_MEALS) {
     return "Meals must be a whole number from 1 to 100.";
   }
   if (ingredients.length === 0 || ingredients.some((ingredient) => !ingredient.name.trim())) {
@@ -367,7 +457,7 @@ function buildRecipe(
 
   return {
     title: trimmedTitle,
-    baseServings: meals,
+    baseServings,
     note: note.trim() || undefined,
     category: category.trim() || undefined,
     ingredients: mapped,

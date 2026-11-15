@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { listRecipes } from "@/lib/recipes";
 import { requireSession } from "@/lib/session";
-import { RecipeList } from "./recipe-list";
+import { RecipeBrowser } from "./recipe-browser";
 
 export default async function HomePage({
   searchParams,
@@ -35,57 +34,30 @@ export default async function HomePage({
         )}
       </header>
 
-      {categories.length > 0 && (
-        <nav aria-label="Filter by category" className="mb-3 flex flex-wrap gap-1">
-          <CategoryChip href="/" label="All" active={activeCategory === null} />
-          {categories.map((category) => (
-            <CategoryChip
-              key={category}
-              href={`/?category=${encodeURIComponent(category)}`}
-              label={category}
-              active={activeCategory === category}
-            />
-          ))}
-        </nav>
-      )}
-
       {recipes.length === 0 ? (
         <p className="max-w-md text-base leading-relaxed text-muted">
           No recipes yet. Finish a recipe in ChatGPT, then tell it to save the recipe to
           mirandola-recipes. It will show up here.
         </p>
-      ) : shown.length === 0 ? (
-        <p className="text-base text-muted">No recipes in this category.</p>
       ) : (
-        <RecipeList
+        <RecipeBrowser
           recipes={shown.map((recipe) => ({
             id: recipe.id,
             title: recipe.title,
             baseServings: recipe.baseServings,
             category: recipe.category,
             favorite: recipe.favorite,
+            searchText: recipe.searchText,
           }))}
           catalog={recipes.map((recipe) => ({
             id: recipe.id,
             favorite: recipe.favorite,
             sortOrder: recipe.sortOrder,
           }))}
+          categories={categories}
+          activeCategory={activeCategory}
         />
       )}
     </main>
-  );
-}
-
-function CategoryChip({ href, label, active }: { href: string; label: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={`inline-flex min-h-11 items-center rounded px-3 text-sm capitalize ${
-        active ? "bg-hover font-medium text-ink" : "text-muted hover:bg-hover"
-      }`}
-    >
-      {label}
-    </Link>
   );
 }
