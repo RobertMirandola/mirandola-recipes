@@ -21,7 +21,7 @@ export default async function HomePage({
     : recipes;
 
   return (
-    <main className="mx-auto min-h-dvh max-w-[720px] px-6 pt-16 pb-24 sm:px-12">
+    <main className="mx-auto min-h-dvh max-w-180 px-6 pt-16 pb-24 sm:px-12">
       <header className="mb-8">
         <div aria-hidden="true" className="mb-2 text-7xl leading-none">
           🍲

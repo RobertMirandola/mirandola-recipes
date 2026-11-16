@@ -17,7 +17,7 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-[420px] flex-col justify-center px-6 py-16">
+    <main className="mx-auto flex min-h-dvh max-w-105 flex-col justify-center px-6 py-16">
       <div aria-hidden="true" className="mb-2 text-6xl leading-none">
         🍲
       </div>
